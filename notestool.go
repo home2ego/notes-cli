@@ -1,27 +1,36 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
-	"bufio"
 	"strings"
+
 	"gitea.kood.tech/artemzhyrnyi/notes/constants"
 	"gitea.kood.tech/artemzhyrnyi/notes/utils"
 )
 
 func main() {
+	// Validate arguments
 	if len(os.Args) < 2 || strings.ToLower(os.Args[1]) == "help" {
 		fmt.Print(constants.Clear)
 		fmt.Printf("\nUsage: %s./todotool <filename>%s\n\n", constants.Purple, constants.Reset)
 		return
 	}
 
-	fileName := utils.FormatName(os.Args[1]) // todos.txt || todos
+	reader := bufio.NewReader(os.Stdin)
+	fileName := utils.FormatName(os.Args[1])
 
 	fmt.Print(constants.Clear)
-	fmt.Printf("\n%sWelcome to the notes tool!%s\n", constants.Purple, constants.Reset)
 
-	reader := bufio.NewReader(os.Stdin)
+	// Validate password
+	if !utils.HandleSecurity(fileName, reader) {
+		fmt.Print(constants.Clear)
+		fmt.Printf("\n%sAccess denied.%s\n\n", constants.Red, constants.Reset)
+		return
+	}
+
+	fmt.Printf("\n%sWelcome to the notes tool!%s\n", constants.Purple, constants.Reset)
 
 	for {
 		fmt.Printf("\n%sSelect operation:%s\n", constants.Yellow, constants.Reset)
@@ -33,7 +42,7 @@ func main() {
 
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
-		
+
 		switch input {
 		case "1":
 			utils.ShowNotes(fileName)

@@ -2,13 +2,16 @@ package utils
 
 import (
 	"bufio"
-	"os"
 	"fmt"
-	"strings"
+	"os"
 	"strconv"
+	"strings"
+	"time"
+
 	"gitea.kood.tech/artemzhyrnyi/notes/constants"
 )
 
+// Load notes
 func loadNotes(fileName string) []string {
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -21,7 +24,7 @@ func loadNotes(fileName string) []string {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		
+
 		if line != "" {
 			notes = append(notes, line)
 		}
@@ -30,6 +33,7 @@ func loadNotes(fileName string) []string {
 	return notes
 }
 
+// Save notes
 func saveNotes(fileName string, notes []string) {
 	content := strings.Join(notes, "\n")
 
@@ -40,6 +44,7 @@ func saveNotes(fileName string, notes []string) {
 	_ = os.WriteFile(fileName, []byte(content), 0644)
 }
 
+// Show notes
 func ShowNotes(fileName string) {
 	notes := loadNotes(fileName)
 
@@ -55,25 +60,29 @@ func ShowNotes(fileName string) {
 	}
 }
 
+// Add a new note
 func AddNote(fileName string, r *bufio.Reader) {
 	fmt.Printf("\n%sEnter the note text:%s\n", constants.Yellow, constants.Reset)
 	fmt.Print("\n> ")
+	text, _ := r.ReadString('\n')
+	text = strings.TrimSpace(text)
 
-	input, _ := r.ReadString('\n')
-	input = strings.TrimSpace(input)
-
-	if input == "" {
+	if text == "" {
 		fmt.Print(constants.Clear)
 		fmt.Printf("\n%sCannot add an empty note.%s\n", constants.Red, constants.Reset)
 		return
 	}
-	
+
+	timestamp := time.Now().Format("2006-01-02 15:04")
+	entry := fmt.Sprintf("%s [%s]", text, timestamp)
+
 	notes := loadNotes(fileName)
-	notes = append(notes, input)
+	notes = append(notes, entry)
 	saveNotes(fileName, notes)
 	fmt.Printf("\n%sNote added.%s\n", constants.Green, constants.Reset)
 }
 
+// Delete a note
 func DeleteNote(fileName string, r *bufio.Reader) {
 	notes := loadNotes(fileName)
 
@@ -85,9 +94,9 @@ func DeleteNote(fileName string, r *bufio.Reader) {
 	fmt.Println("\nEnter the number of note to remove or 0 to cancel:")
 	fmt.Print("\n> ")
 
-	input, _ := r.ReadString('\n')
-	input = strings.TrimSpace(input)
-	idx, err := strconv.Atoi(input)
+	number, _ := r.ReadString('\n')
+	number = strings.TrimSpace(number)
+	idx, err := strconv.Atoi(number)
 
 	if err != nil || idx < 0 || idx > len(notes) {
 		fmt.Print(constants.Clear)
